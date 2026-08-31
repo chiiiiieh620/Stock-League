@@ -8,6 +8,11 @@ const syncText = document.getElementById('syncText');
 const priceHint = document.getElementById('priceHint');
 const authGate = document.getElementById('authGate');
 const authMessage = document.getElementById('authMessage');
+const loginTab = document.getElementById('loginTab');
+const registerTab = document.getElementById('registerTab');
+const displayNameLabel = document.getElementById('displayNameLabel');
+const authPassword = document.getElementById('authPassword');
+const authSubmit = document.getElementById('authSubmit');
 
 let db = null;
 let session = null;
@@ -15,6 +20,7 @@ let currentUser = null;
 let myPlayer = null;
 let players = [];
 let holdings = [];
+let authMode = 'login';
 
 function money(n){return Number(n||0).toLocaleString('zh-TW',{maximumFractionDigits:2});}
 function pct(n){const v=Number(n||0);return `${v>=0?'+':''}${v.toFixed(2)}%`;}
@@ -125,7 +131,7 @@ function render(){
 }
 
 function holdingRow(h,canDelete=false){
-  const cost=Number(h.shares)*Number(h.avg_cost), value=Number(h.shares)*Number(h.current_price), pnl=value-cost, ret=cost?pnl/cost*100:0;
+  const cost=Number(h.shares)*Number(h.avg_cost), value=Number(h.shares)*Number(h.current_price), ret=cost?(value-cost)/cost*100:0;
   return `<div class="holding"><div><strong>${esc(h.symbol)}</strong><small>${esc(h.market)}</small></div><div><small>股數</small>${money(h.shares)}</div><div><small>平均成本</small>${money(h.avg_cost)}</div><div><small>目前價格</small>${money(h.current_price)}</div><div><small>報酬率</small><span class="${cls(ret)}">${pct(ret)}</span></div>${canDelete?`<button class="delete" data-delete="${h.id}" aria-label="刪除持倉">刪除</button>`:'<span></span>'}</div>`;
 }
 
@@ -135,7 +141,7 @@ function renderMyDashboard(ranked){
     document.getElementById('sideUserName').textContent=currentUser.email||'已登入';
     document.getElementById('sideUserRank').textContent='尚未建立參賽者資料';
     document.getElementById('holdingOwner').textContent='尚未建立參賽者資料';
-    document.getElementById('myHoldings').innerHTML='<div class="status">此帳號尚未綁定參賽者名稱，請重新登入並填寫名稱。</div>';
+    document.getElementById('myHoldings').innerHTML='<div class="status">此帳號尚未綁定參賽者名稱，請登出後改用「建立帳號」重新建立。</div>';
     return;
   }
   const idx=ranked.findIndex(p=>p.id===myPlayer.id); const me=ranked[idx];
@@ -169,18 +175,48 @@ async function fetchCurrentPrice(){
   }catch(err){priceHint.textContent=`自動抓價失敗：${err.message}。可先手動輸入現價。`;priceHint.className='field-hint err';}
 }
 
+function setAuthMode(mode){
+  authMode=mode;
+  const isRegister=mode==='register';
+  loginTab.classList.toggle('active',!isRegister);
+  registerTab.classList.toggle('active',isRegister);
+  displayNameLabel.classList.toggle('hidden',!isRegister);
+  document.getElementById('displayName').required=isRegister;
+  authPassword.autocomplete=isRegister?'new-password':'current-password';
+  authSubmit.textContent=isRegister?'建立帳號並登入':'登入';
+  authMessage.textContent='';
+  authMessage.className='auth-message';
+}
+
+loginTab.addEventListener('click',()=>setAuthMode('login'));
+registerTab.addEventListener('click',()=>setAuthMode('register'));
+
 document.getElementById('authForm').addEventListener('submit',async e=>{
   e.preventDefault(); if(!await ensureClient()) return;
-  const email=document.getElementById('authEmail').value.trim(); const displayName=document.getElementById('displayName').value.trim();
-  authMessage.textContent='寄送登入連結中…'; authMessage.className='auth-message';
-  const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:window.location.href.split('#')[0],data:displayName?{display_name:displayName}:{}}});
-  if(error){authMessage.textContent=error.message;authMessage.className='auth-message err';}
-  else{authMessage.textContent='登入連結已寄到信箱，點開後會自動回到 Stock League。';authMessage.className='auth-message ok';}
+  const email=document.getElementById('authEmail').value.trim();
+  const password=authPassword.value;
+  const displayName=document.getElementById('displayName').value.trim();
+  authMessage.textContent=authMode==='register'?'建立帳號中…':'登入中…';
+  authMessage.className='auth-message';
+
+  if(authMode==='register'){
+    const {data,error}=await db.auth.signUp({email,password,options:{data:{display_name:displayName}}});
+    if(error){authMessage.textContent=error.message;authMessage.className='auth-message err';return;}
+    if(data.session){
+      authMessage.textContent='帳號建立成功，已登入。';authMessage.className='auth-message ok';
+    }else{
+      authMessage.textContent='帳號已建立，但 Supabase 目前要求 Email 驗證。關閉 Confirm email 後即可建立完直接登入。';authMessage.className='auth-message err';
+    }
+  }else{
+    const {error}=await db.auth.signInWithPassword({email,password});
+    if(error){authMessage.textContent='登入失敗：Email 或密碼不正確。';authMessage.className='auth-message err';return;}
+    authMessage.textContent='登入成功。';authMessage.className='auth-message ok';
+  }
 });
 
 document.getElementById('guestBtn').addEventListener('click',()=>authGate.classList.add('hidden'));
 document.getElementById('openLoginBtn').addEventListener('click',()=>authGate.classList.remove('hidden'));
-document.getElementById('logoutBtn').addEventListener('click',async()=>{if(db)await db.auth.signOut();authGate.classList.remove('hidden');});
+document.getElementById('logoutBtn').addEventListener('click',async()=>{if(db)await db.auth.signOut();setAuthMode('login');authGate.classList.remove('hidden');});
 
 document.getElementById('holdingForm').addEventListener('submit',async e=>{
   e.preventDefault(); if(!db||!currentUser||!myPlayer){alert('請先登入並建立參賽者資料。');return;}
@@ -203,4 +239,5 @@ function closeMenu(){sidebar.classList.remove('open');backdrop.classList.remove(
 menuBtn.addEventListener('click',()=>{sidebar.classList.toggle('open');backdrop.classList.toggle('show');}); backdrop.addEventListener('click',closeMenu);
 document.querySelectorAll('.nav-link').forEach(link=>link.addEventListener('click',()=>{document.querySelectorAll('.nav-link').forEach(x=>x.classList.remove('active'));link.classList.add('active');closeMenu();}));
 
+setAuthMode('login');
 initAuth();
