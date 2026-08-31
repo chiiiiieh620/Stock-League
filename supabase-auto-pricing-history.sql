@@ -29,6 +29,42 @@ on public.ranking_snapshots
 for select
 using (true);
 
+create or replace function public.get_holdings_for_quote()
+returns table (
+  id uuid,
+  symbol text,
+  market text
+)
+language sql
+security definer
+set search_path = public
+as $$
+  select h.id, h.symbol, h.market
+  from public.holdings h;
+$$;
+
+create or replace function public.set_holding_price(p_holding_id uuid, p_price numeric)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_price is null or p_price <= 0 then
+    raise exception 'Invalid price';
+  end if;
+
+  update public.holdings
+  set current_price = p_price
+  where id = p_holding_id;
+end;
+$$;
+
+revoke all on function public.get_holdings_for_quote() from public, anon, authenticated;
+revoke all on function public.set_holding_price(uuid,numeric) from public, anon, authenticated;
+grant execute on function public.get_holdings_for_quote() to service_role;
+grant execute on function public.set_holding_price(uuid,numeric) to service_role;
+
 create or replace function public.capture_champion(p_period_type text, p_period_key text)
 returns jsonb
 language plpgsql
@@ -75,6 +111,5 @@ $$;
 revoke all on function public.capture_champion(text,text) from public, anon, authenticated;
 grant execute on function public.capture_champion(text,text) to service_role;
 
--- The scheduled GitHub job uses the Supabase service role key, updates prices,
--- then calls capture_champion. The unique(period_type, period_key) constraint
--- makes weekly/monthly snapshots idempotent.
+-- The scheduled GitHub job uses SECURITY DEFINER RPCs above so quote refreshes
+-- are not dependent on public table grants or RLS policies.
