@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#10131a">
+  <title>Stock League｜股票排位賽</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div><span class="eyebrow">STOCK LEAGUE</span><h1>股票排位賽</h1><p>最多 15 人，用真實持倉比總報酬率。</p></div>
+    <button id="refreshBtn" class="secondary">重新整理</button>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="section-head"><div><span class="eyebrow">LEADERBOARD</span><h2>排行榜</h2></div><span id="playerCount" class="pill">0 / 15</span></div>
+      <div id="status" class="status">讀取中…</div>
+      <div id="leaderboard" class="leaderboard"></div>
+    </section>
+
+    <section class="grid">
+      <form id="playerForm" class="panel form-card">
+        <span class="eyebrow">JOIN</span><h2>新增參賽者</h2>
+        <label>名稱<input id="playerName" maxlength="30" required placeholder="例如：小霈"></label>
+        <button type="submit">加入排位賽</button>
+      </form>
+
+      <form id="holdingForm" class="panel form-card">
+        <span class="eyebrow">POSITION</span><h2>新增持倉</h2>
+        <label>參賽者<select id="holdingPlayer" required></select></label>
+        <div class="two"><label>股票代號<input id="symbol" required maxlength="20" placeholder="2330 / NVDA"></label><label>市場<select id="market"><option value="TW">台股</option><option value="US">美股</option><option value="OTHER">其他</option></select></label></div>
+        <div class="three"><label>股數<input id="shares" type="number" min="0.000001" step="any" required></label><label>平均成本<input id="avgCost" type="number" min="0" step="any" required></label><label>目前價格<input id="currentPrice" type="number" min="0" step="any" required></label></div>
+        <button type="submit">新增持倉</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="section-head"><div><span class="eyebrow">PORTFOLIOS</span><h2>所有持倉</h2></div></div>
+      <div id="portfolios"></div>
+    </section>
+  </main>
+
+  <footer>Stock League MVP · 僅供比賽紀錄，不構成投資建議</footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
