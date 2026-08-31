@@ -1,0 +1,25 @@
+name: Update stock quotes
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * 1-5'
+    - cron: '5 0 * * 6,0'
+
+permissions:
+  contents: read
+
+jobs:
+  update-quotes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Refresh prices and snapshots
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/update-quotes.mjs
