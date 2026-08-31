@@ -11,18 +11,23 @@
   <div id="authGate" class="auth-gate">
     <div class="auth-card">
       <div class="brand auth-brand"><span class="brand-mark">SL</span><div><strong>Stock League</strong><small>15 人投資排位賽</small></div></div>
-      <div class="auth-copy"><span class="eyebrow">WELCOME</span><h1>登入你的投資戰績</h1><p>使用 Email 與密碼登入。第一次使用先建立帳號，之後直接登入即可。</p></div>
-      <div class="auth-tabs">
+      <div class="auth-copy"><span class="eyebrow">WELCOME</span><h1 id="authTitle">登入你的投資戰績</h1><p id="authDescription">使用 Email 與密碼登入。第一次使用先建立帳號，之後直接登入即可。</p></div>
+      <div id="authTabs" class="auth-tabs">
         <button id="loginTab" class="auth-tab active" type="button">登入</button>
         <button id="registerTab" class="auth-tab" type="button">建立帳號</button>
       </div>
       <form id="authForm" class="auth-form">
         <label id="displayNameLabel" class="hidden">參賽名稱<input id="displayName" maxlength="30" placeholder="例如：小霈"></label>
         <label>Email<input id="authEmail" type="email" autocomplete="email" required placeholder="name@example.com"></label>
-        <label>密碼<input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="至少 6 碼"></label>
+        <label id="passwordLabel">密碼<input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="至少 6 碼"></label>
+        <label id="newPasswordLabel" class="hidden">新密碼<input id="newPassword" type="password" minlength="6" placeholder="至少 6 碼"></label>
         <button id="authSubmit" type="submit">登入</button>
         <div id="authMessage" class="auth-message"></div>
       </form>
+      <div id="authHelpers" class="auth-helpers">
+        <button id="resendBtn" class="text-btn" type="button">重新寄送驗證信</button>
+        <button id="forgotBtn" class="text-btn" type="button">忘記密碼</button>
+      </div>
       <button id="guestBtn" class="guest-btn" type="button">先看公開排行榜</button>
     </div>
   </div>
@@ -80,13 +85,14 @@
         <div class="owner-banner">持倉會自動歸到 <strong id="holdingOwner">你的帳號</strong></div>
         <form id="holdingForm" class="form-card inner-form">
           <div class="two">
-            <label>股票代號<input id="symbol" required maxlength="20" placeholder="2330 / NVDA" autocomplete="off"></label>
-            <label>市場<select id="market"><option value="TWSE">台股上市</option><option value="TPEX">台股上櫃</option><option value="US">美股</option><option value="OTHER">其他</option></select></label>
+            <label>股票代號或名稱<input id="symbol" required maxlength="40" placeholder="2330 / 台積電 / NVDA" autocomplete="off"><small id="stockLookupHint" class="field-hint">輸入代號或名稱後自動搜尋股票</small></label>
+            <label>市場<select id="market"><option value="TWSE">台股上市</option><option value="TPEX">台股上櫃</option><option value="US">美股</option><option value="AUTO">自動判斷</option><option value="OTHER">其他</option></select></label>
           </div>
+          <label>股票名稱<input id="stockName" readonly placeholder="自動帶入"></label>
           <div class="three">
             <label>股數<input id="shares" type="number" min="0.000001" step="any" required></label>
             <label>平均成本<input id="avgCost" type="number" min="0" step="any" required></label>
-            <label>目前價格<div class="price-field"><input id="currentPrice" type="number" min="0" step="any" required placeholder="自動帶入"><button id="fetchPriceBtn" type="button" class="mini-btn">抓價</button></div><small id="priceHint" class="field-hint">輸入股票代號後會自動抓取現價</small></label>
+            <label>目前價格<div class="price-field"><input id="currentPrice" type="number" min="0" step="any" required placeholder="自動帶入"><button id="fetchPriceBtn" type="button" class="mini-btn">抓價</button></div><small id="priceHint" class="field-hint">輸入股票代號或名稱後會自動抓取現價</small></label>
           </div>
           <button type="submit">新增持倉</button>
         </form>
