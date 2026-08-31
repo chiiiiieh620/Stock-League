@@ -68,5 +68,8 @@ end;
 $$;
 
 revoke all on function public.capture_champion(text,text) from public, anon, authenticated;
+grant execute on function public.capture_champion(text,text) to service_role;
 
--- Service-role jobs bypass RLS and can call the function through REST RPC.
+-- The scheduled GitHub job uses the Supabase service role key, updates prices,
+-- then calls capture_champion. The unique(period_type, period_key) constraint
+-- makes weekly/monthly snapshots idempotent.
