@@ -8,37 +8,55 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div id="authGate" class="auth-gate">
+    <div class="auth-card">
+      <div class="brand auth-brand"><span class="brand-mark">SL</span><div><strong>Stock League</strong><small>15 人投資排位賽</small></div></div>
+      <div class="auth-copy"><span class="eyebrow">WELCOME</span><h1>登入你的投資戰績</h1><p>使用 Email 登入連結，不用記密碼。登入後會自動顯示你的名次、報酬率與持倉。</p></div>
+      <form id="authForm" class="auth-form">
+        <label>參賽名稱<input id="displayName" maxlength="30" placeholder="第一次登入請填，例如：小霈"></label>
+        <label>Email<input id="authEmail" type="email" autocomplete="email" required placeholder="name@example.com"></label>
+        <button id="authSubmit" type="submit">寄送登入連結</button>
+        <div id="authMessage" class="auth-message"></div>
+      </form>
+      <button id="guestBtn" class="guest-btn" type="button">先看公開排行榜</button>
+    </div>
+  </div>
+
   <button id="menuBtn" class="menu-btn" aria-label="開啟選單">☰</button>
   <div id="backdrop" class="backdrop"></div>
 
   <aside id="sidebar" class="sidebar">
-    <div class="brand">
-      <span class="brand-mark">SL</span>
-      <div><strong>Stock League</strong><small>投資排位賽</small></div>
-    </div>
+    <div class="brand"><span class="brand-mark">SL</span><div><strong>Stock League</strong><small>投資排位賽</small></div></div>
+    <div id="userCard" class="user-card"><div id="userAvatar" class="user-avatar">?</div><div><strong id="sideUserName">訪客</strong><small id="sideUserRank">尚未登入</small></div></div>
     <nav>
+      <a href="#myDashboard" class="nav-link auth-only hidden">我的戰績</a>
       <a href="#overview" class="nav-link active">總覽</a>
       <a href="#leaderboard" class="nav-link">排行榜</a>
-      <a href="#join" class="nav-link">參賽者</a>
-      <a href="#position" class="nav-link">新增持倉</a>
-      <a href="#portfolios" class="nav-link">投資組合</a>
+      <a href="#position" class="nav-link auth-only hidden">新增持倉</a>
+      <a href="#portfolios" class="nav-link">所有投資組合</a>
     </nav>
-    <div class="side-footer">
-      <span id="syncDot" class="sync-dot"></span><span id="syncText">連線中</span>
-    </div>
+    <div class="side-actions"><button id="openLoginBtn" class="side-login" type="button">登入</button><button id="logoutBtn" class="side-login danger-text hidden" type="button">登出</button></div>
+    <div class="side-footer"><span id="syncDot" class="sync-dot"></span><span id="syncText">連線中</span></div>
   </aside>
 
   <div class="app-shell">
     <header class="topbar">
-      <div>
-        <span class="eyebrow">STOCK LEAGUE</span>
-        <h1>股票排位賽</h1>
-        <p>最多 15 人，用真實持倉比總報酬率。</p>
-      </div>
-      <button id="refreshBtn" class="secondary">重新整理</button>
+      <div><span class="eyebrow">STOCK LEAGUE</span><h1>股票排位賽</h1><p>15 人公開排行，登入後管理自己的投資組合。</p></div>
+      <div class="top-actions"><span id="topIdentity" class="identity-pill">訪客模式</span><button id="refreshBtn" class="secondary">重新整理</button></div>
     </header>
 
     <main>
+      <section id="myDashboard" class="my-dashboard panel auth-only hidden">
+        <div class="section-head"><div><span class="eyebrow">MY PERFORMANCE</span><h2>我的戰績</h2></div><span id="myRankPill" class="pill">— / 15</span></div>
+        <div class="my-stats">
+          <article><small>目前名次</small><strong id="myRank">—</strong></article>
+          <article><small>總報酬率</small><strong id="myReturn">—</strong></article>
+          <article><small>未實現損益</small><strong id="myPnl">—</strong></article>
+          <article><small>目前市值</small><strong id="myValue">—</strong></article>
+        </div>
+        <div id="myHoldings" class="my-holdings"></div>
+      </section>
+
       <section id="overview" class="stats-grid">
         <article class="stat-card"><small>參賽者</small><strong id="statPlayers">0</strong><span>最多 15 人</span></article>
         <article class="stat-card"><small>總持倉筆數</small><strong id="statHoldings">0</strong><span>全聯盟</span></article>
@@ -47,26 +65,15 @@
       </section>
 
       <section id="leaderboard" class="panel">
-        <div class="section-head">
-          <div><span class="eyebrow">LEADERBOARD</span><h2>排行榜</h2></div>
-          <span id="playerCount" class="pill">0 / 15</span>
-        </div>
+        <div class="section-head"><div><span class="eyebrow">LEADERBOARD</span><h2>排行榜</h2></div><span id="playerCount" class="pill">0 / 15</span></div>
         <div id="status" class="status">讀取中…</div>
         <div id="leaderboardList" class="leaderboard"></div>
       </section>
 
-      <section class="grid">
-        <form id="playerForm" class="panel form-card" data-section="join" id="joinForm">
-          <div id="join"></div>
-          <span class="eyebrow">JOIN</span><h2>新增參賽者</h2>
-          <label>名稱<input id="playerName" maxlength="30" required placeholder="例如：小霈"></label>
-          <button type="submit">加入排位賽</button>
-        </form>
-
-        <form id="holdingForm" class="panel form-card">
-          <div id="position"></div>
-          <span class="eyebrow">POSITION</span><h2>新增持倉</h2>
-          <label>參賽者<select id="holdingPlayer" required></select></label>
+      <section id="position" class="panel auth-only hidden">
+        <span class="eyebrow">POSITION</span><h2>新增我的持倉</h2>
+        <div class="owner-banner">持倉會自動歸到 <strong id="holdingOwner">你的帳號</strong></div>
+        <form id="holdingForm" class="form-card inner-form">
           <div class="two">
             <label>股票代號<input id="symbol" required maxlength="20" placeholder="2330 / NVDA" autocomplete="off"></label>
             <label>市場<select id="market"><option value="TWSE">台股上市</option><option value="TPEX">台股上櫃</option><option value="US">美股</option><option value="OTHER">其他</option></select></label>
@@ -74,22 +81,18 @@
           <div class="three">
             <label>股數<input id="shares" type="number" min="0.000001" step="any" required></label>
             <label>平均成本<input id="avgCost" type="number" min="0" step="any" required></label>
-            <label>目前價格
-              <div class="price-field"><input id="currentPrice" type="number" min="0" step="any" required placeholder="自動帶入"><button id="fetchPriceBtn" type="button" class="mini-btn">抓價</button></div>
-              <small id="priceHint" class="field-hint">輸入股票代號後會自動抓取現價</small>
-            </label>
+            <label>目前價格<div class="price-field"><input id="currentPrice" type="number" min="0" step="any" required placeholder="自動帶入"><button id="fetchPriceBtn" type="button" class="mini-btn">抓價</button></div><small id="priceHint" class="field-hint">輸入股票代號後會自動抓取現價</small></label>
           </div>
           <button type="submit">新增持倉</button>
         </form>
       </section>
 
       <section id="portfolios" class="panel">
-        <div class="section-head"><div><span class="eyebrow">PORTFOLIOS</span><h2>所有持倉</h2></div></div>
+        <div class="section-head"><div><span class="eyebrow">PORTFOLIOS</span><h2>所有投資組合</h2></div></div>
         <div id="portfoliosList"></div>
       </section>
     </main>
-
-    <footer>Stock League · 僅供比賽紀錄，不構成投資建議</footer>
+    <footer>Stock League · 公開排行，個人資料需登入後管理 · 不構成投資建議</footer>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
