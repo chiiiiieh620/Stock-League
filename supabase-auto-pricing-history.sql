@@ -15,6 +15,11 @@ create table if not exists public.ranking_snapshots (
 );
 
 alter table public.ranking_snapshots enable row level security;
+grant usage on schema public to service_role;
+grant select, update on public.holdings to service_role;
+grant select on public.players to service_role;
+grant select, insert on public.ranking_snapshots to service_role;
+
 grant select on public.ranking_snapshots to anon, authenticated;
 revoke insert, update, delete on public.ranking_snapshots from anon, authenticated;
 
