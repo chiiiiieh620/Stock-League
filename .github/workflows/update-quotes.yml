@@ -20,6 +20,6 @@ jobs:
           node-version: '20'
       - name: Refresh prices and snapshots
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_URL: https://ahixjacfjljhqvatzqfn.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node scripts/update-quotes.mjs
