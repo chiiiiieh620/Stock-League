@@ -28,3 +28,5 @@ jobs:
           SUPABASE_URL: https://ahixjacfjljhqvatzqfn.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node scripts/update-quotes.mjs
+
+# RPC setup verified; this comment intentionally triggers a fresh quote run.
