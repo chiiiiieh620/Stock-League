@@ -1,4 +1,4 @@
 window.STOCK_LEAGUE_CONFIG = {
-  supabaseUrl: "YOUR_SUPABASE_URL",
-  supabaseAnonKey: "YOUR_SUPABASE_ANON_KEY"
+  supabaseUrl: "https://ahixjacfjljhqvatzqfn.supabase.co",
+  supabaseAnonKey: "sb_publishable_FTvgSTNMAsG0rEmaVpHmoA_kbvH76js"
 };
