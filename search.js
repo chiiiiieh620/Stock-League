@@ -4,9 +4,12 @@
   const nameInput = document.getElementById('stockName');
   const box = document.getElementById('stockSuggestions');
   const lookupHint = document.getElementById('stockLookupHint');
+  const priceHint = document.getElementById('priceHint');
+  const currentPrice = document.getElementById('currentPrice');
   if (!input || !box) return;
 
   let master = [];
+  let quoteClient = null;
 
   async function loadMaster(){
     try {
@@ -69,6 +72,29 @@
     box.querySelectorAll('.stock-option').forEach((el,i)=>el.addEventListener('click',()=>choose(rows[i])));
   }
 
+  async function fetchLiveQuote(item){
+    try {
+      if (!window.supabase || !window.STOCK_LEAGUE_CONFIG) throw new Error('報價服務尚未初始化');
+      if (!quoteClient) quoteClient = window.supabase.createClient(window.STOCK_LEAGUE_CONFIG.supabaseUrl, window.STOCK_LEAGUE_CONFIG.supabaseAnonKey);
+      currentPrice.value = '0';
+      if (priceHint) { priceHint.textContent = '⚡ 正在取得最新價格…'; priceHint.className = 'field-hint'; }
+      const { data, error } = await quoteClient.functions.invoke('quote', { body: { symbol:item.symbol, market:item.market } });
+      if (error) throw error;
+      const price = Number(data?.price);
+      if (!Number.isFinite(price) || price <= 0) throw new Error('沒有有效報價');
+      currentPrice.value = String(price);
+      currentPrice.dataset.quotedSymbol = item.symbol;
+      currentPrice.dataset.quotedMarket = item.market;
+      if (priceHint) { priceHint.textContent = `⚡ 最新價格 ${price.toLocaleString('zh-TW')}，可直接新增持倉`; priceHint.className = 'field-hint ok'; }
+      window.dispatchEvent(new CustomEvent('stockleague:quote-ready',{detail:{...item,price}}));
+    } catch (e) {
+      currentPrice.value = '0';
+      delete currentPrice.dataset.quotedSymbol;
+      delete currentPrice.dataset.quotedMarket;
+      if (priceHint) { priceHint.textContent = `報價取得失敗：${e?.message || '未知錯誤'}，請重新選擇股票`; priceHint.className = 'field-hint err'; }
+    }
+  }
+
   function choose(item){
     input.value = item.symbol;
     nameInput.value = item.name;
@@ -76,11 +102,15 @@
     box.classList.add('hidden');
     lookupHint.textContent = `已選擇 ${item.symbol} · ${item.name}`;
     lookupHint.className = 'field-hint ok';
+    fetchLiveQuote(item);
   }
 
   function handleInput(e){
     e.stopImmediatePropagation();
     nameInput.value = '';
+    currentPrice.value = '0';
+    delete currentPrice.dataset.quotedSymbol;
+    delete currentPrice.dataset.quotedMarket;
     const q = input.value;
     if(!q.trim()){
       box.classList.add('hidden');
@@ -93,7 +123,7 @@
   input.addEventListener('input', handleInput, true);
   input.addEventListener('blur', e => { e.stopImmediatePropagation(); setTimeout(()=>box.classList.add('hidden'),180); }, true);
   input.addEventListener('focus', e => { if(input.value.trim()) renderSuggestions(searchLocal(input.value)); }, true);
-  market.addEventListener('change', e => { e.stopImmediatePropagation(); if(input.value.trim()) renderSuggestions(searchLocal(input.value)); }, true);
+  market.addEventListener('change', e => { e.stopImmediatePropagation(); currentPrice.value='0'; if(input.value.trim()) renderSuggestions(searchLocal(input.value)); }, true);
   document.addEventListener('click', e => { if(!e.target.closest('.stock-search-wrap')) box.classList.add('hidden'); });
 
   loadMaster();
